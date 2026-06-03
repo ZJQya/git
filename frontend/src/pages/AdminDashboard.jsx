@@ -1,19 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Layout, Menu, Button, Card, Table, message, Statistic, Row, Col, theme
+    Layout, Menu, Button, Card, Table, message, Statistic, Row, Col,
+    Dropdown, Avatar, Space, Typography, Tag
 } from 'antd';
 import {
     UserOutlined, BarChartOutlined, LogoutOutlined, DashboardOutlined
 } from '@ant-design/icons';
 import { getUsers, deleteUser, getAllAnalysis, getResultImageUrl } from '../services/api';
+import { jwtDecode } from 'jwt-decode';
 
-const { Sider, Content } = Layout;
+const { Sider, Content, Header } = Layout;
+const { Text } = Typography;
 
 const AdminDashboard = ({ onLogout }) => {
     const [users, setUsers] = useState([]);
     const [analysis, setAnalysis] = useState([]);
     const [selectedMenu, setSelectedMenu] = useState('dashboard');
-    const { token: { colorBgContainer } } = theme.useToken();
+    const [username, setUsername] = useState('');
+
+    // 解析 token 获取用户名
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                setUsername(decoded.sub || '管理员');
+            } catch (e) {
+                console.error('Token解析失败', e);
+            }
+        }
+    }, []);
 
     useEffect(() => {
         fetchUsers();
@@ -41,11 +57,33 @@ const AdminDashboard = ({ onLogout }) => {
         }).catch(() => message.error('删除失败'));
     };
 
-    // 统计数据
     const totalUsers = users.length;
     const totalAnalysis = analysis.length;
     const successAnalysis = analysis.filter(a => a.status === 'SUCCESS').length;
     const vipUsers = users.filter(u => u.vip).length;
+
+    // 用户下拉菜单
+    const userMenuItems = [
+        {
+            key: 'info',
+            label: (
+                <div style={{ padding: '4px 0' }}>
+                    <div><Text strong>{username}</Text></div>
+                    <div>
+                        角色：<Tag color="blue">管理员</Tag>
+                    </div>
+                </div>
+            ),
+            disabled: true,
+        },
+        { type: 'divider' },
+        {
+            key: 'logout',
+            icon: <LogoutOutlined />,
+            label: '退出登录',
+            onClick: () => onLogout(),
+        },
+    ];
 
     const userColumns = [
         { title: 'ID', dataIndex: 'id' },
@@ -66,7 +104,6 @@ const AdminDashboard = ({ onLogout }) => {
 
     const analysisColumns = [
         { title: '任务ID', dataIndex: 'id' },
-        // 用户名列（替代原来的用户ID）
         {
             title: '用户名',
             render: (_, record) => {
@@ -80,7 +117,6 @@ const AdminDashboard = ({ onLogout }) => {
                 <span style={{ color: status === 'SUCCESS' ? '#52c41a' : '#ff4d4f' }}>{status}</span>
             )
         },
-        // 新增提交时间列
         {
             title: '提交时间',
             dataIndex: 'createTime',
@@ -100,18 +136,10 @@ const AdminDashboard = ({ onLogout }) => {
                 return (
                     <>
                         <Row gutter={16} style={{ marginBottom: 24 }}>
-                            <Col span={6}>
-                                <Card><Statistic title="总用户数" value={totalUsers} prefix={<UserOutlined />} /></Card>
-                            </Col>
-                            <Col span={6}>
-                                <Card><Statistic title="VIP 用户" value={vipUsers} valueStyle={{ color: '#cf9d1f' }} /></Card>
-                            </Col>
-                            <Col span={6}>
-                                <Card><Statistic title="总分析任务" value={totalAnalysis} prefix={<BarChartOutlined />} /></Card>
-                            </Col>
-                            <Col span={6}>
-                                <Card><Statistic title="成功任务" value={successAnalysis} valueStyle={{ color: '#52c41a' }} /></Card>
-                            </Col>
+                            <Col span={6}><Card><Statistic title="总用户数" value={totalUsers} prefix={<UserOutlined />} /></Card></Col>
+                            <Col span={6}><Card><Statistic title="VIP 用户" value={vipUsers} valueStyle={{ color: '#cf9d1f' }} /></Card></Col>
+                            <Col span={6}><Card><Statistic title="总分析任务" value={totalAnalysis} prefix={<BarChartOutlined />} /></Card></Col>
+                            <Col span={6}><Card><Statistic title="成功任务" value={successAnalysis} valueStyle={{ color: '#52c41a' }} /></Card></Col>
                         </Row>
                         <Card title="最近分析任务">
                             <Table dataSource={analysis.slice(0, 5)} columns={analysisColumns} rowKey="id" pagination={false} />
@@ -137,28 +165,35 @@ const AdminDashboard = ({ onLogout }) => {
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
-            <Sider width={250} theme="dark" collapsible>
-                <div style={{ padding: 24, textAlign: 'center', color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
-                    ⚙️ 管理员控制台
-                </div>
-                <Menu
-                    theme="dark"
-                    mode="inline"
-                    selectedKeys={[selectedMenu]}
-                    onClick={({ key }) => setSelectedMenu(key)}
-                >
-                    <Menu.Item key="dashboard" icon={<DashboardOutlined />}>数据总览</Menu.Item>
-                    <Menu.Item key="users" icon={<UserOutlined />}>用户管理</Menu.Item>
-                    <Menu.Item key="analysis" icon={<BarChartOutlined />}>分析记录</Menu.Item>
-                </Menu>
-                <div style={{ position: 'absolute', bottom: 24, width: '100%', padding: '0 16px' }}>
-                    <Button icon={<LogoutOutlined />} onClick={onLogout} block ghost>
-                        退出登录
-                    </Button>
-                </div>
-            </Sider>
+            {/* 顶部导航栏 */}
+            <Header style={{
+                background: '#fff',
+                padding: '0 24px',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+                borderBottom: '1px solid #f0f0f0'
+            }}>
+                <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+                    <Space style={{ cursor: 'pointer' }}>
+                        <Avatar icon={<UserOutlined />} />
+                        <span>{username}</span>
+                    </Space>
+                </Dropdown>
+            </Header>
+
             <Layout>
-                <Content style={{ margin: 24, padding: 24, background: colorBgContainer, borderRadius: 8 }}>
+                <Sider width={250} theme="dark" collapsible>
+                    <div style={{ padding: 24, textAlign: 'center', color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
+                        ⚙️ 管理员控制台
+                    </div>
+                    <Menu theme="dark" mode="inline" selectedKeys={[selectedMenu]} onClick={({ key }) => setSelectedMenu(key)}>
+                        <Menu.Item key="dashboard" icon={<DashboardOutlined />}>数据总览</Menu.Item>
+                        <Menu.Item key="users" icon={<UserOutlined />}>用户管理</Menu.Item>
+                        <Menu.Item key="analysis" icon={<BarChartOutlined />}>分析记录</Menu.Item>
+                    </Menu>
+                </Sider>
+                <Content style={{ margin: 24, padding: 24, background: '#fff', borderRadius: 8 }}>
                     {renderContent()}
                 </Content>
             </Layout>

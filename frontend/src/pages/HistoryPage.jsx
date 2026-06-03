@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Card, message } from 'antd';
+import { Table, Card, message, Button } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { getUserHistory, getResultImageUrl } from '../services/api';
 
 const HistoryPage = () => {
     const [records, setRecords] = useState([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         getUserHistory()
@@ -15,7 +18,7 @@ const HistoryPage = () => {
         { title: '任务ID', dataIndex: 'id' },
         { title: '分析类型', dataIndex: 'taskType' },
         { title: '状态', dataIndex: 'status' },
-        { title: '创建时间', dataIndex: 'createTime' },
+        { title: '创建时间', dataIndex: 'createTime', render: (text) => text || '-' },
         {
             title: '结果',
             render: (_, record) => (
@@ -25,7 +28,15 @@ const HistoryPage = () => {
     ];
 
     return (
-        <Card title="分析历史记录" style={{ margin: 24 }}>
+        <Card
+            title="分析历史记录"
+            extra={
+                <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/dashboard')}>
+                    返回首页
+                </Button>
+            }
+            style={{ margin: 24 }}
+        >
             <Table dataSource={records} columns={columns} rowKey="id" />
         </Card>
     );
