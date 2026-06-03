@@ -47,6 +47,10 @@ public class JwtTokenUtil {
     public String generateToken(UserDetails userDetails, Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);  // 存入用户 ID
+        // 将角色列表存入 JWT
+        claims.put("role", userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList()));
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userDetails.getUsername())
