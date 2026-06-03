@@ -96,6 +96,7 @@ export const getResultImageUrl = (taskId) =>
 // 用户相关
 export const getUserHistory = () => instance.get('/user/history');
 export const activateVip = () => instance.post('/user/vip/activate');
+export const getVipStatus = () => instance.get('/user/vip/status');
 
 // 管理员相关
 export const getUsers = () => instance.get('/admin/users');

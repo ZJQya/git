@@ -26,10 +26,10 @@ public class DatasetController {
     public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
         // 从JWT中解析用户ID（简化处理，实际可从SecurityContext获取）
         String token = request.getHeader("Authorization").substring(7);
-        String username = jwtTokenUtil.getUsernameFromToken(token);
+        Long userId = jwtTokenUtil.getUserIdFromToken(token);
         // 实际项目中应通过UserService获取ID，此处假设ID为1，需调整
-        Long userId = 1L; // 示例，应从数据库查询
         Dataset dataset = datasetService.storeFile(file, userId);
         return ResponseEntity.ok(Map.of("id", dataset.getId()));
     }
+
 }

@@ -66,12 +66,25 @@ const AdminDashboard = ({ onLogout }) => {
 
     const analysisColumns = [
         { title: '任务ID', dataIndex: 'id' },
-        { title: '用户ID', dataIndex: 'userId' },
+        // 用户名列（替代原来的用户ID）
+        {
+            title: '用户名',
+            render: (_, record) => {
+                const user = users.find(u => u.id === record.userId);
+                return user ? user.username : `未知用户(${record.userId})`;
+            }
+        },
         { title: '类型', dataIndex: 'taskType' },
         { title: '状态', dataIndex: 'status',
             render: (status) => (
                 <span style={{ color: status === 'SUCCESS' ? '#52c41a' : '#ff4d4f' }}>{status}</span>
             )
+        },
+        // 新增提交时间列
+        {
+            title: '提交时间',
+            dataIndex: 'createTime',
+            render: (text) => text || '-'
         },
         {
             title: '结果',
