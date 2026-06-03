@@ -18,4 +18,8 @@ public class AnalysisTask {
     private String resultPath;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
+    @TableField(exist = false)
+    private String datasetName;
+
+
 }

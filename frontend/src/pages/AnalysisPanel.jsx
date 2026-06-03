@@ -97,7 +97,7 @@ const AnalysisPanel = ({ datasetList, taskType }) => {
             </Card>
             <Card title="参数设置" style={{ marginBottom: 16 }}>
                 {renderParamForm()}
-                <Button type="primary" onClick={startAnalysis} loading={loading} block>
+                <Button type="primary" onClick={startAnalysis} loading={loading} size="default">
                     开始分析
                 </Button>
             </Card>

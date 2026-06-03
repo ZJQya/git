@@ -10,6 +10,8 @@ import { jwtDecode } from 'jwt-decode';
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [role, setRole] = useState(null);
+    const [fileList, setFileList] = useState([]);
+    const [datasetList, setDatasetList] = useState([]);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -38,6 +40,8 @@ const App = () => {
         localStorage.removeItem('token');
         setIsAuthenticated(false);
         setRole(null);
+        setFileList([]);
+        setDatasetList([]);
     };
 
     if (isAuthenticated && !role) {
@@ -55,7 +59,13 @@ const App = () => {
                 <Route path="/register" element={<Register />} />
                 <Route path="/dashboard" element={
                     isAuthenticated && role === 'user'
-                        ? <Dashboard onLogout={handleLogout} />
+                        ? <Dashboard
+                            onLogout={handleLogout}
+                            fileList={fileList}
+                            setFileList={setFileList}
+                            datasetList={datasetList}
+                            setDatasetList={setDatasetList}
+                        />
                         : <Navigate to="/login" />
                 } />
                 <Route path="/admin" element={

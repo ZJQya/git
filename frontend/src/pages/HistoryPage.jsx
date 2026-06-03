@@ -17,6 +17,7 @@ const HistoryPage = () => {
     const columns = [
         { title: '任务ID', dataIndex: 'id' },
         { title: '分析类型', dataIndex: 'taskType' },
+        { title: '数据集名称', dataIndex: 'datasetName', render: (text) => text || '-' },
         { title: '状态', dataIndex: 'status' },
         { title: '创建时间', dataIndex: 'createTime', render: (text) => text || '-' },
         {

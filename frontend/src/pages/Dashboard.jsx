@@ -15,11 +15,12 @@ import AnalysisPanel from './AnalysisPanel';
 const { Content, Sider, Header } = Layout;
 const { Text } = Typography;
 
-const Dashboard = ({ onLogout }) => {
-    const [datasetList, setDatasetList] = useState([]);
-    const [selectedMenu, setSelectedMenu] = useState('my_data'); // 默认显示“我的数据”
+const Dashboard = ({  onLogout, fileList, setFileList, datasetList, setDatasetList }) => {
+  //  const [datasetList, setDatasetList] = useState([]);
+    const [selectedMenu, setSelectedMenu] = useState('my_data');
     const [username, setUsername] = useState('');
     const [vip, setVip] = useState(false);
+   // const [fileList, setFileList] = useState([]);  // 文件列表状态提升到这里
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -52,6 +53,13 @@ const Dashboard = ({ onLogout }) => {
 
     const handleLogout = () => onLogout();
 
+    // 数据集上传回调（同时更新 datasetList 和 fileList）
+    const handleDatasetUploaded = (fileObj) => {
+        // fileObj: { id, name, file }
+        setDatasetList(prev => [...prev, { id: fileObj.id, name: fileObj.name }]);
+        setFileList(prev => [...prev, fileObj]);
+    };
+
     const userMenuItems = [
         {
             key: 'info',
@@ -71,17 +79,18 @@ const Dashboard = ({ onLogout }) => {
         { key: 'logout', icon: <LogoutOutlined />, label: '退出登录', onClick: handleLogout },
     ];
 
-    // 添加新数据集到列表
-    const handleDatasetUploaded = (ds) => {
-        setDatasetList(prev => [...prev, ds]);
-    };
-
-    // 根据选择的菜单渲染不同内容
+    // 根据菜单渲染内容
     const renderContent = () => {
         if (selectedMenu === 'my_data') {
-            return <MyDataPanel datasetList={datasetList} onDatasetUploaded={handleDatasetUploaded} />;
+            return (
+                <MyDataPanel
+                    datasetList={datasetList}
+                    fileList={fileList}
+                    // onFileListChange={setFileList}
+                    onDatasetUploaded={handleDatasetUploaded}
+                />
+            );
         }
-        // 三个分析算法对应不同的 taskType
         const taskTypeMap = {
             'decision_tree': 'decision_tree',
             'kmeans': 'kmeans',
@@ -92,7 +101,6 @@ const Dashboard = ({ onLogout }) => {
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
-            {/* 顶部用户栏 */}
             <Header style={{
                 background: '#fff', padding: '0 24px', display: 'flex',
                 justifyContent: 'flex-end', alignItems: 'center',

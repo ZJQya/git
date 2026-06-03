@@ -5,6 +5,7 @@ import com.datamine.entity.AnalysisTask;
 import com.datamine.entity.Dataset;
 import com.datamine.mapper.AnalysisTaskMapper;
 import com.datamine.mapper.DatasetMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -81,12 +82,36 @@ public class AnalysisService {
         return taskMapper.selectById(taskId);
     }
 
-    //AnalysisService 补充方法
+//    @Autowired
+//    private DatasetMapper datasetMapper;
+
     public List<AnalysisTask> getUserHistory(Long userId) {
-        return taskMapper.selectList(new LambdaQueryWrapper<AnalysisTask>().eq(AnalysisTask::getUserId, userId).orderByDesc(AnalysisTask::getCreateTime));
+        List<AnalysisTask> tasks = taskMapper.selectList(
+                new LambdaQueryWrapper<AnalysisTask>()
+                        .eq(AnalysisTask::getUserId, userId)
+                        .orderByDesc(AnalysisTask::getCreateTime)
+        );
+        // 填充数据集名称
+        for (AnalysisTask task : tasks) {
+            Dataset dataset = datasetMapper.selectById(task.getDatasetId());
+            if (dataset != null) {
+                task.setDatasetName(dataset.getOriginalName());
+            }
+        }
+        return tasks;
     }
 
+    // 管理员的全部历史记录也加上数据集名称
     public List<AnalysisTask> getAllHistory() {
-        return taskMapper.selectList(new LambdaQueryWrapper<AnalysisTask>().orderByDesc(AnalysisTask::getCreateTime));
+        List<AnalysisTask> tasks = taskMapper.selectList(
+                new LambdaQueryWrapper<AnalysisTask>().orderByDesc(AnalysisTask::getCreateTime)
+        );
+        for (AnalysisTask task : tasks) {
+            Dataset dataset = datasetMapper.selectById(task.getDatasetId());
+            if (dataset != null) {
+                task.setDatasetName(dataset.getOriginalName());
+            }
+        }
+        return tasks;
     }
 }
