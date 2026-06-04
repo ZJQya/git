@@ -102,5 +102,6 @@ export const getVipStatus = () => instance.get('/user/vip/status');
 export const getUsers = () => instance.get('/admin/users');
 export const deleteUser = (id) => instance.delete(`/admin/users/${id}`);
 export const getAllAnalysis = () => instance.get('/admin/analysis');
-
+//删除数据集
+export const deleteDataset = (id) => instance.delete(`/dataset/${id}`);
 export default instance;

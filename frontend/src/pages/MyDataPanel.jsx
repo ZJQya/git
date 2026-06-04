@@ -1,9 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Button, Card, List, message, Drawer, Table, Space } from 'antd';
+import { Upload, Button, Card, List, message, Drawer, Table, Space ,Popconfirm} from 'antd';
 import { UploadOutlined, FileTextOutlined, EyeOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { uploadDataset } from '../services/api';
+import { deleteDataset } from '../services/api';
 
-const MyDataPanel = ({ datasetList, fileList, onDatasetUploaded }) => {
+
+const MyDataPanel = ({ datasetList, fileList, onDatasetUploaded ,onDatasetDeleted }) => {
     const [previewVisible, setPreviewVisible] = useState(false);
     const [previewData, setPreviewData] = useState([]);
     const [previewColumns, setPreviewColumns] = useState([]);
@@ -26,6 +28,19 @@ const MyDataPanel = ({ datasetList, fileList, onDatasetUploaded }) => {
             message.error(`${file.name} 上传失败`);
         }
         return false;
+    };
+
+    const handleDelete = async (id) => {
+        try {
+            await deleteDataset(id);
+            message.success('文件已删除');
+            if (fileObjectMap.current[id]) {
+                delete fileObjectMap.current[id];
+            }
+            onDatasetDeleted(id);   // 调用父组件更新列表
+        } catch {
+            message.error('删除失败');
+        }
     };
 
     const handlePreview = (fileItem) => {
@@ -77,7 +92,16 @@ const MyDataPanel = ({ datasetList, fileList, onDatasetUploaded }) => {
                     renderItem={(item) => (
                         <List.Item
                             actions={[
-                                <Button type="link" icon={<EyeOutlined />} onClick={() => handlePreview(item)}>查看数据</Button>
+                                <Button type="link" icon={<EyeOutlined />} onClick={() => handlePreview(item)}>查看数据</Button>,
+                                <Popconfirm
+                                    title="确定删除此文件吗？"
+                                    description="删除后无法恢复，相关分析结果可能失效。"
+                                    onConfirm={() => handleDelete(item.id)}
+                                    okText="确定"
+                                    cancelText="取消"
+                                >
+                                    <Button type="link" danger>删除</Button>
+                                </Popconfirm>
                             ]}
                         >
                             <List.Item.Meta

@@ -13,7 +13,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class DatasetService {
 
@@ -48,5 +50,19 @@ public class DatasetService {
         } catch (IOException ex) {
             throw new RuntimeException("Could not store file " + originalName, ex);
         }
+    }
+
+    public void deleteDataset(Long datasetId) {
+        Dataset dataset = datasetMapper.selectById(datasetId);
+        if (dataset == null) return;
+        // 删除物理文件
+        try {
+            Path filePath = Paths.get(dataset.getStoredPath());
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            log.warn("Failed to delete file: {}", dataset.getStoredPath());
+        }
+        // 删除数据库记录
+        datasetMapper.deleteById(datasetId);
     }
 }

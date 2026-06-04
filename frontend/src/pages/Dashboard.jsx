@@ -59,6 +59,11 @@ const Dashboard = ({  onLogout, fileList, setFileList, datasetList, setDatasetLi
         setDatasetList(prev => [...prev, { id: fileObj.id, name: fileObj.name }]);
         setFileList(prev => [...prev, fileObj]);
     };
+    //添加删除回调并传给子组件
+    const handleDatasetDeleted = (id) => {
+        setFileList(prev => prev.filter(item => item.id !== id));
+        setDatasetList(prev => prev.filter(item => item.id !== id));
+    };
 
     const userMenuItems = [
         {
@@ -88,6 +93,8 @@ const Dashboard = ({  onLogout, fileList, setFileList, datasetList, setDatasetLi
                     fileList={fileList}
                     // onFileListChange={setFileList}
                     onDatasetUploaded={handleDatasetUploaded}
+                    onDatasetDeleted={handleDatasetDeleted}
+
                 />
             );
         }
