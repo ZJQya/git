@@ -68,11 +68,16 @@ instance.interceptors.request.use(config => {
 });
 
 // 认证相关
-export const login = (username, password) =>
-    instance.post('/auth/login', { username, password });
+export const login = (username, password, captchaToken, captchaCode) =>
+    instance.post('/auth/login', {
+        username,
+        password,
+        captchaToken,
+        captchaCode
+    });
 
-export const register = (username, password, email) =>
-    instance.post('/auth/register', { username, password, email });
+export const register = (username, password, email, captchaToken, captchaCode) =>
+    instance.post('/auth/register', { username, password, email, captchaToken, captchaCode });
 
 // 数据集上传
 export const uploadDataset = (file) => {
@@ -104,4 +109,7 @@ export const deleteUser = (id) => instance.delete(`/admin/users/${id}`);
 export const getAllAnalysis = () => instance.get('/admin/analysis');
 //删除数据集
 export const deleteDataset = (id) => instance.delete(`/dataset/${id}`);
+//修改密码
+export const changePassword = (oldPassword, newPassword) =>
+    instance.post('/user/change-password', { oldPassword, newPassword });
 export default instance;

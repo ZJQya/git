@@ -59,6 +59,16 @@ public class UserService extends ServiceImpl<UserMapper, User> {
             updateById(user);
         }
     }
+    //修改密码
+    public boolean changePassword(Long userId, String oldPassword, String newPassword) {
+        User user = getById(userId);
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            return false;
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        updateById(user);
+        return true;
+    }
     public List<User> listAll() {
         return userMapper.selectList(null);   // 无条件查询所有用户
     }

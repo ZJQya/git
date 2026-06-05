@@ -2,6 +2,7 @@ package com.datamine.controller;
 
 import com.datamine.dto.RegisterRequest;
 import com.datamine.entity.User;
+import com.datamine.service.CaptchaService;
 import com.datamine.service.JwtUserDetailsService;
 import com.datamine.service.UserService;
 import com.datamine.util.JwtTokenUtil;
@@ -33,19 +34,18 @@ public class AuthController {
         this.userDetailsService = userDetailsService;
         this.userService = userService; // 关键：必须赋值
     }
-//    @PostMapping("/login")
-//    public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest) {
-//        // 临时注释掉认证，直接生成 token
-//        // authenticationManager.authenticate(...);
-//
-//        final String token = jwtTokenUtil.generateToken(
-//                new org.springframework.security.core.userdetails.User(loginRequest.get("username"), "", new ArrayList<>())
-//        );
-//        return ResponseEntity.ok(Map.of("token", token));
-//    }
-
+    @Autowired
+    private CaptchaService captchaService;
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest) {
+
+        // 校验验证码
+        String captchaToken = loginRequest.get("captchaToken");
+        String captchaCode = loginRequest.get("captchaCode");
+        if (captchaToken == null || !captchaService.verify(captchaToken, captchaCode)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "验证码错误"));
+        }
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.get("username"), loginRequest.get("password"))
         );
@@ -63,6 +63,12 @@ public class AuthController {
     }
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody @Valid RegisterRequest request) {
+        String captchaToken = request.getCaptchaToken();   // 需在 RegisterRequest 中添加字段
+        String captchaCode = request.getCaptchaCode();
+        if (captchaToken == null || !captchaService.verify(captchaToken, captchaCode)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "验证码错误"));
+        }
+
         if (userService.existsByUsername(request.getUsername())) {
             return ResponseEntity.badRequest().body(Map.of("error", "Username already exists"));
         }

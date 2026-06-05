@@ -112,6 +112,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")       // 只有管理员可访问
                         .requestMatchers("/api/user/vip/**").hasRole("USER")     // VIP 相关需登录（可为 USER 或 ADMIN）
                         .requestMatchers("/api/result/**").permitAll()   // 新增：放行图片接口
+                        .requestMatchers("/api/captcha/**").permitAll()
                         .anyRequest().authenticated()
                 )
 //                .authorizeHttpRequests(auth -> auth

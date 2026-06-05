@@ -90,6 +90,7 @@ const AdminDashboard = ({ onLogout }) => {
         { title: '用户名', dataIndex: 'username' },
         { title: '角色', dataIndex: 'role' },
         { title: 'VIP', dataIndex: 'vip', render: v => v ? '是' : '否' },
+        { title: 'VIP到期时间', dataIndex: 'vipExpireTime', render: text => text || '-' },
         {
             title: '操作',
             render: (_, record) => (
