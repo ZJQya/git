@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -55,7 +56,10 @@ public class UserController {
     public ResponseEntity<?> vipStatus(HttpServletRequest request) {
         Long userId = getUserIdFromToken(request);
         User user = userService.getById(userId);
-        return ResponseEntity.ok(Map.of("vip", user.getVip(), "expireTime", user.getVipExpireTime()));
+        Map<String, Object> result = new HashMap<>();
+        result.put("vip", user.getVip());
+        result.put("expireTime", user.getVipExpireTime()); // 允许为 null，前端会显示空
+        return ResponseEntity.ok(result);
     }
 
     // 分析历史记录
@@ -79,5 +83,11 @@ public class UserController {
             return ResponseEntity.badRequest().body(Map.of("error", "旧密码错误"));
         }
         return ResponseEntity.ok(Map.of("message", "密码修改成功"));
+    }
+    @GetMapping("/vip/test-activate")
+    public ResponseEntity<?> testActivate(HttpServletRequest request) {
+        Long userId = getUserIdFromToken(request);
+        userService.activateVip(userId, 30);
+        return ResponseEntity.ok(Map.of("message", "VIP activated (test)"));
     }
 }

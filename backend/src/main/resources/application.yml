@@ -11,6 +11,12 @@ spring:
     multipart:
       max-file-size: 50MB
       max-request-size: 50MB
+  data:
+    redis:
+      host: localhost      # 默认
+      port: 6379           # 默认
+      # timeout: 2000ms
+
 
 mybatis-plus:
   configuration:
@@ -34,4 +40,12 @@ logging:
     com.datamine.mapper: DEBUG                    # 打印 MyBatis SQL
     org.mybatis: DEBUG
     com.zaxxer.hikari: DEBUG                      # 打印数据库连接池信息
+    com.alipay: DEBUG
 
+alipay:
+  app-id: 9021000164645855
+  merchant-private-key: MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC8bvvlnDYsT1ei3O45qeqUw4woicpqocRcnNsWCbdqbCzzKI4dKOj6Ou+9l848gFGxA0IV5WT6yoIOMTBsmZfLHv0DLuNAWZYlsF7XNgsPnKIWoQDpNUYKz2Ew9gGtwq7cDm0kavbvwj2xlsT60TDWWOrJVholw0N77T0ZVXdqhNNJ37UoHuTrBN8KIvLLRdPWrRrmHydVw8w1gNrVp45Lyow/NNXwi/FOMiUxx5vZaM55UXX2gYimJeAw6bDkyr2zLOxkjlLI3ICuys/kKT4wbdUwl1B3LB9uhCkw0JnrqUz+75NZDipkFdk2P2WyQeTl22WiQ0peltVS46CPSb3hAgMBAAECggEBAJQ0zpcHyGwNc6Y7Env0MvcS3rg7uCMqXOFi1cZ9me9waeJOcYhp1uSJWmrKbYGUg6wwHdhO9p9yi9xRv/6Kx6MRGntYc5D3ZWr7T30Bmq2Kysn1lFvYdOCnv4/czfE3AIVAK4PLRbHKGvAE36VOx5SvlusId8Rf0kI0lCvK1wPFXfb/Lu66apkCJKdXoQ58/+k+8BCl7TXb6vHifBdKBSFYcpuzP40t7gmGIPyrkxb2m05vRQYAAH92LCTdFAzILplWZ8j1QqVGhJJeBzBJ8Atz4b2sHINW1uEIgs0ATAI0acKDh2eQOfhxwOVnXJx7lGNN6nSYT7G35/bJ8OFp62kCgYEA7/3peLt+XSRlC0aKdPaEo9jh38QS3YtxeLCgbn6b1BmxZul1R+nHA7/XThQRFEMHzEIU7bWthbL5RGM0d267L/JzzhT2IZNBpGRszFS/eBpGnao+VbNmiwpUhE19QaN6cpC03aWy7tO1310eFQDKdMkdZB1Ah9Tbh17ZTqBipicCgYEAyQCqOuKaYqE5LrtcIyxSlTndGokNTVZhJGDsJ2/RXp4j5LiKliO0z4++n5jl0j2ARqh1XGSuRiiM2aaBt8xREvR/iriy8YRi/6/WqStiLvNwKv3haqbAS1XveoG/3c6fVVNQlRXm+wljdKwffMvEkoPu77y4cNHyFfzuQuXmSLcCgYEAyLEoTetVF+T4jr5VyMviTfZvpSWdtSEIKipibyR3gZ5eyTXP+uxXnh4Omd+UDMKlQb29LLAyRM1PQE5JsNqrtMPm7d5/mcJAMY49oX35hCFNDkowyJA2320rElyOs5ZXLnkulvAbOzdWL0z6fAvmQlVwu6juruhlEMZTqTncZR8CgYBHrEYHM1BLxSOHx2VmYWKdNYHi+WXV4uxGtYzfzx6AN7Gi2C8KtHa/4Ijfjfy9SBLany0iIgCGoeT/o0D0EhYCxU5JX+zm9Ab9F21a605aYZHospjTl9xPwLfhHi0VYZ0tJsVANAwmDcX6D3o23M4eVI85yziVejdxobwv/Jxt5wKBgQDob3Dca8gqNg7p4DKxSxUxOsH5eYZuysnu/1gL4RlLhIlUb7BpTB6fic0OW51EMyAdkvIW8cSc2/1A2khfCYTaerbkylhl5xvHogDOLsaIDVcHDyjGmennOye9TECl2H+V3vttKyyUtW5FyoO/X5lebLlxxSUcaP6thX1ahRWCGA==
+  alipay-public-key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqdUI+1lqoKRyT3pH0D24dn7YuJMXcUxN87F6L9wBgOeIF99skamPRN9/NiTaPEPvudfaIJuiWxaRUPRWjKZp4EnA75N60gAaG8/PR123+cG5NdJ2V5I80hwSfM0R69BlsYFR6behX62hZvkCxmBuahvtiVLtA27K7W4D+Bz7cS+qXU/XoB4Qnv0JkvoB38PUcT72MZIpJzl9HJNp6rDSSloTFPMxX7jYKTNrrUCdxmefiDR2ksmHXNh0VTJwyFwmGE/01AWi5q77YMAaAnTjvklLReEmVzSwRi23i2TedPwjCyX0vsJa94VP1XNSlYNbXiAvH4J7ncFAUEz9g9fXeQIDAQAB
+  gateway-url: http://openapi-sandbox.dl.alipaydev.com/gateway.do
+  return-url: http://localhost:3000/dashboard
+  notify-url: https://subway-slighted-commerce.ngrok-free.dev/api/alipay/notify

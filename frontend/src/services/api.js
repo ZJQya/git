@@ -112,4 +112,11 @@ export const deleteDataset = (id) => instance.delete(`/dataset/${id}`);
 //修改密码
 export const changePassword = (oldPassword, newPassword) =>
     instance.post('/user/change-password', { oldPassword, newPassword });
+// 创建支付宝支付订单，返回 { qrCode, outTradeNo }
+export const createAlipayOrder = () =>
+    instance.post('/alipay/create');
+// 查询支付状态，返回 { paid: true/false }
+export const queryAlipayOrder = (outTradeNo) =>
+    instance.get(`/alipay/query?outTradeNo=${outTradeNo}`);
+
 export default instance;

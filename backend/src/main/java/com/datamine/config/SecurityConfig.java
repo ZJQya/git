@@ -113,6 +113,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/user/vip/**").hasRole("USER")     // VIP 相关需登录（可为 USER 或 ADMIN）
                         .requestMatchers("/api/result/**").permitAll()   // 新增：放行图片接口
                         .requestMatchers("/api/captcha/**").permitAll()
+                        .requestMatchers("/api/alipay/notify").permitAll()
+                        .requestMatchers("/redis-test").permitAll()//测试接口
+                        .requestMatchers("/api/user/vip/test-activate").permitAll()//测试接口
                         .anyRequest().authenticated()
                 )
 //                .authorizeHttpRequests(auth -> auth

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Layout, Menu, Dropdown, Avatar, Space, Typography, Tag, message,
     Modal, Form, Input, Button
@@ -10,10 +10,11 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import {
-    getVipStatus, activateVip, changePassword   // 需要在 api.js 中添加 changePassword
+    getVipStatus, changePassword, createAlipayOrder, queryAlipayOrder,activateVip
 } from '../services/api';
 import MyDataPanel from './MyDataPanel';
 import AnalysisPanel from './AnalysisPanel';
+import { QRCodeSVG } from 'qrcode.react';
 
 const { Content, Sider, Header } = Layout;
 const { Text } = Typography;
@@ -25,9 +26,14 @@ const Dashboard = ({ onLogout, fileList, setFileList, datasetList, setDatasetLis
     const [vipExpireTime, setVipExpireTime] = useState('');
     const navigate = useNavigate();
 
-    // 模拟支付 Modal
+    // 支付宝支付相关状态
     const [payModalVisible, setPayModalVisible] = useState(false);
-    // 修改密码 Modal
+    const [qrCodeUrl, setQrCodeUrl] = useState('');
+    const [outTradeNo, setOutTradeNo] = useState('');
+    const [payLoading, setPayLoading] = useState(false);
+    const pollTimerRef = useRef(null);
+
+    // 修改密码 Modal 状态
     const [changePwdModalVisible, setChangePwdModalVisible] = useState(false);
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -42,34 +48,73 @@ const Dashboard = ({ onLogout, fileList, setFileList, datasetList, setDatasetLis
             } catch { }
         }
         fetchVipStatus();
+        return () => {
+            // 组件卸载时清除轮询
+            if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+        };
     }, []);
 
     const fetchVipStatus = async () => {
         try {
             const res = await getVipStatus();
             setVip(res.data.vip);
-            setVipExpireTime(res.data.expireTime || '');   // 后端返回 expireTime
+            setVipExpireTime(res.data.expireTime || '');
         } catch { }
     };
 
-    // 打开支付 Modal 代替直接激活
-    const handleOpenPayModal = () => {
-        setPayModalVisible(true);
+    // 创建支付宝订单并展示二维码
+    const handleCreatePay = async () => {
+        setPayLoading(true);
+        try {
+            const res = await createAlipayOrder();
+            const { qrCode, outTradeNo } = res.data;
+            setQrCodeUrl(qrCode);
+            setOutTradeNo(outTradeNo);
+            setPayModalVisible(true);
+            startPolling(outTradeNo);
+        } catch (error) {
+            message.error('创建支付订单失败');
+        } finally {
+            setPayLoading(false);
+        }
     };
 
-    // 确认支付（模拟）
-    const handlePayConfirm = async () => {
-        setConfirmLoading(true);
+
+    const handleTestActivate = async () => {
         try {
-            await activateVip();               // 现有激活接口即为支付成功
-            message.success('支付成功，VIP 已开通（30天）');
+            await activateVip();   // 调用 /user/vip/activate
+            message.success('VIP 已开通（30天）');
             fetchVipStatus();
-            setPayModalVisible(false);
         } catch {
-            message.error('支付失败，请重试');
-        } finally {
-            setConfirmLoading(false);
+            message.error('激活失败');
         }
+    };
+
+    // 轮询支付状态
+    const startPolling = (tradeNo) => {
+        if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+        const timer = setInterval(async () => {
+            try {
+                const res = await queryAlipayOrder(tradeNo);
+                if (res.data.paid) {
+                    clearInterval(timer);
+                    pollTimerRef.current = null;
+                    setPayModalVisible(false);
+                    message.success('支付成功，VIP已激活（30天）');
+                    fetchVipStatus();
+                }
+            } catch { /* 忽略轮询错误 */ }
+        }, 3000);
+        pollTimerRef.current = timer;
+    };
+
+    // 关闭支付弹窗
+    const handleClosePay = () => {
+        if (pollTimerRef.current) {
+            clearInterval(pollTimerRef.current);
+            pollTimerRef.current = null;
+        }
+        setPayModalVisible(false);
     };
 
     // 修改密码逻辑
@@ -80,10 +125,10 @@ const Dashboard = ({ onLogout, fileList, setFileList, datasetList, setDatasetLis
         }
         setConfirmLoading(true);
         try {
-            await changePassword(oldPassword, newPassword);   // 需要在 api.js 中添加
+            await changePassword(oldPassword, newPassword);
             message.success('密码修改成功，请重新登录');
             setChangePwdModalVisible(false);
-            onLogout();   // 修改密码后强制重新登录
+            onLogout();
         } catch (error) {
             const errMsg = error.response?.data?.error || '修改失败';
             message.error(errMsg);
@@ -123,11 +168,12 @@ const Dashboard = ({ onLogout, fileList, setFileList, datasetList, setDatasetLis
             disabled: true,
         },
         { type: 'divider' },
-        { key: 'vip', icon: <CrownOutlined />, label: '开通 VIP', onClick: handleOpenPayModal },
+        { key: 'vip', icon: <CrownOutlined />, label: '开通 VIP', onClick: handleCreatePay },
         { key: 'changePwd', icon: <LockOutlined />, label: '修改密码', onClick: () => setChangePwdModalVisible(true) },
         { key: 'history', icon: <HistoryOutlined />, label: '历史记录', onClick: () => navigate('/history') },
         { type: 'divider' },
         { key: 'logout', icon: <LogoutOutlined />, label: '退出登录', onClick: handleLogout },
+        { key: 'testVip', icon: <CrownOutlined />, label: '测试激活VIP', onClick: handleTestActivate }
     ];
 
     // 内容渲染
@@ -183,17 +229,25 @@ const Dashboard = ({ onLogout, fileList, setFileList, datasetList, setDatasetLis
                 </Content>
             </Layout>
 
-            {/* 模拟支付 Modal */}
+            {/* 支付宝扫码支付 Modal */}
             <Modal
-                title="开通 VIP（模拟支付）"
+                title="支付宝扫码支付"
                 open={payModalVisible}
-                onOk={handlePayConfirm}
-                onCancel={() => setPayModalVisible(false)}
-                confirmLoading={confirmLoading}
+                onCancel={handleClosePay}
+                footer={null}
+                destroyOnClose
             >
-                <p>支付金额：<strong>¥0.01</strong>（演示）</p>
-                <p>支付方式：模拟支付宝 / 微信支付</p>
-                <p>VIP有效期：30天</p>
+                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                    {qrCodeUrl ? (
+                        <>
+                            <QRCodeSVG value={qrCodeUrl} size={200} />
+                            <p style={{ marginTop: 16 }}>请使用支付宝扫描二维码支付</p>
+                            <p><strong>¥0.01</strong>（沙箱测试）</p>
+                        </>
+                    ) : (
+                        <p>加载中...</p>
+                    )}
+                </div>
             </Modal>
 
             {/* 修改密码 Modal */}
